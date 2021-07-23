@@ -15,6 +15,27 @@ variable "tags" {
     type= map
 }
 
+variable "sg_name"{
+    type= string
+}
+
+variable "ingress_rules"{
+    type= list
+}
+
+resource "aws_security_group" "terraform_SSH_HTTP"{
+    name = var.sg_name
+    dynamic "ingress"{
+        for_each = var.ingress_rules
+        content {
+            from_port= ingress.value.from_port
+            to_port= ingress.value.to_port
+            protocol= ingress.value.protocol
+            cidr_blocks= ingress.value.cidr_blocks
+        }
+    }
+}
+
 resource "aws_instance" "testIntance" {
     #The ami is a last free tier and can be obtanied when you launch a new VM
     ami = var.ami_id
@@ -22,7 +43,7 @@ resource "aws_instance" "testIntance" {
     instance_type = var.instance_type
     ##The Key Should be generate previously in the aws account
     key_name = "terraform_key"
-    security_groups = ["terraform_SSH_HTTP"]
+    security_groups = [aws_security_group.terraform_SSH_HTTP.name]
     tags = var.tags
 }
 
