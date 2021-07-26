@@ -59,15 +59,7 @@ resource "aws_instance" "testIntance" {
     security_groups = [aws_security_group.terraform_SSH_HTTP.name]
     tags = var.tags
     #Use a provisioner to install docker and run a nginx container
-    provisioner "remote-exec" {
-      connection {
-        type = "ssh"
-        user = "ec2-user"
-        private_key = file("~/terraform_key.pem")
-        host = self.public_ip
-      }
-      inline = ["sudo yum install docker -y", "sudo systemctl start docker", "sudo docker run -d -p 80:80 nginx"]
-    }
+    user_data = file("userdata.yaml")
 }
 
 #Show the public IP to connect to the instance

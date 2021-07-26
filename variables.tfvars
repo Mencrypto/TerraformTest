@@ -1,4 +1,4 @@
-ami_id="ami-0dc2d3e4c0f9ebd18"
+ami_id="ami-09e67e426f25ce0d7"
 instance_type="t2.micro"
 tags={Name = "Public01", Enviroment = "DEV", terraform = "terraform"}
 sg_name="terraform_SSH_HTTP"
