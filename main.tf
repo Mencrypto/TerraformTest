@@ -23,6 +23,10 @@ variable "ingress_rules"{
     type= list
 }
 
+variable "egress_rules"{
+    type= list
+}
+
 resource "aws_security_group" "terraform_SSH_HTTP"{
     name = var.sg_name
     dynamic "ingress"{
@@ -32,6 +36,15 @@ resource "aws_security_group" "terraform_SSH_HTTP"{
             to_port= ingress.value.to_port
             protocol= ingress.value.protocol
             cidr_blocks= ingress.value.cidr_blocks
+        }
+    }
+    dynamic "egress"{
+        for_each = var.egress_rules
+        content {
+            from_port= egress.value.from_port
+            to_port= egress.value.to_port
+            protocol= egress.value.protocol
+            cidr_blocks= egress.value.cidr_blocks
         }
     }
 }
@@ -45,6 +58,16 @@ resource "aws_instance" "testIntance" {
     key_name = "terraform_key"
     security_groups = [aws_security_group.terraform_SSH_HTTP.name]
     tags = var.tags
+    #Use a provisioner to install docker and run a nginx container
+    provisioner "remote-exec" {
+      connection {
+        type = "ssh"
+        user = "ec2-user"
+        private_key = file("~/terraform_key.pem")
+        host = self.public_ip
+      }
+      inline = ["sudo yum install docker -y", "sudo systemctl start docker", "sudo docker run -d -p 80:80 nginx"]
+    }
 }
 
 #Show the public IP to connect to the instance
